@@ -114,6 +114,16 @@ class QuickStart(webapp2.RequestHandler):
 class Instance(webapp2.RequestHandler):
   """List or start instances."""
 
+  def _get_disks(self, gce_project):
+    """Get boot disks for VMs."""
+    disks_array = gce_project.list_disks(
+      filter='name eq ^boot-%s-.*' % DEMO_NAME)
+
+    disks = {}
+    for d in disks_array:
+      disks[d.name] = d
+    return disks
+
   @oauth_decorator.oauth_required
   @data_handler.data_required
   def get(self):
@@ -142,9 +152,21 @@ class Instance(webapp2.RequestHandler):
     gce_project = gce.GceProject(credentials, project_id=gce_project_id,
         zone_name=gce_zone_name)
 
-    num_instances = int(self.request.get('num_instances'))
-    instances = [gce.Instance('%s-%d' % (DEMO_NAME, i))
-                 for i in range(num_instances)]
+    disks = self._get_disks(gce_project)
+    instances = []
+    for i in range(num_instances):
+      instance_name = '%s-%d' % (DEMO_NAME, i)
+      disk_name = 'boot-%s' % instance_name
+      disk = disks.get(disk_name, None)
+      disk_mounts = []
+      kernel = None
+      if disk:
+        dm = gce.DiskMount(disk=disk, boot=True)
+        kernel = gce_project.settings['compute']['kernel']
+        disk_mounts.append(dm)
+      instance = gce.Instance(name=instance_name, disk_mounts=disk_mounts)
+      instances.append(instance) 
+	
     response = gce_appengine.GceAppEngine().run_gce_request(
         self,
         gce_project.bulk_insert,
