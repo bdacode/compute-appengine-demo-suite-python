@@ -117,7 +117,7 @@ class Instance(webapp2.RequestHandler):
   def _get_disks(self, gce_project):
     """Get boot disks for VMs."""
     disks_array = gce_project.list_disks(
-      filter='name eq ^boot-%s-.*' % DEMO_NAME)
+      filter='name eq ^%s-.*' % DEMO_NAME)
 
     disks = {}
     for d in disks_array:
@@ -156,7 +156,7 @@ class Instance(webapp2.RequestHandler):
     instances = []
     for i in range(num_instances):
       instance_name = '%s-%d' % (DEMO_NAME, i)
-      disk_name = 'boot-%s' % instance_name
+      disk_name = '%s' % instance_name
       disk = disks.get(disk_name, None)
       disk_mounts = []
       kernel = None
