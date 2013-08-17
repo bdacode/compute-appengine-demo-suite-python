@@ -144,6 +144,7 @@ class Instance(webapp2.RequestHandler):
   def post(self):
     """Start instances using the gce_appengine helper class."""
 
+    num_instances = int(self.request.get('num_instances'))
     gce_project_id = data_handler.stored_user_data[user_data.GCE_PROJECT_ID]
     gce_zone_name = data_handler.stored_user_data[user_data.GCE_ZONE_NAME]
     user_id = users.get_current_user().user_id()
@@ -164,7 +165,8 @@ class Instance(webapp2.RequestHandler):
         dm = gce.DiskMount(disk=disk, boot=True)
         kernel = gce_project.settings['compute']['kernel']
         disk_mounts.append(dm)
-      instance = gce.Instance(name=instance_name, disk_mounts=disk_mounts)
+      instance = gce.Instance(name=instance_name, disk_mounts=disk_mounts,
+                              kernel=kernel)
       instances.append(instance) 
 	
     response = gce_appengine.GceAppEngine().run_gce_request(
