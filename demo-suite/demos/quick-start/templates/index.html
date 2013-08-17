@@ -34,11 +34,24 @@
   <input type="hidden" id="start-time" value="{{startTime}}">
   <a class="btn" id="start">Start</a>
   <a class="btn disabled" id="reset">Reset</a>
+  &nbsp;&nbsp;&nbsp;
+  <span>
+    Disk Perf
+    <input type="checkbox" class="perf disabled" onclick="QuickStart.perfToggle('disk')">
+  </span>
+  &nbsp;&nbsp;&nbsp;
+  <span>
+    Net Perf
+    <input type="checkbox" class="perf disabled" onclick="QuickStart.perfToggle('net')">
+  </span>
 </p>
 
 <div>
   <canvas id="counter"></canvas>
+&nbsp;&nbsp;&nbsp;
   <span id="elapsed-time">Timer: <span id="timer"></span></span>
 </div>
+<p id="perf-disk" style="display: none">Disk Graph</p>
+<p id="perf-net" style="display: none">Net Graph</p>
 <div id="instances"></div>
 {% endblock %}

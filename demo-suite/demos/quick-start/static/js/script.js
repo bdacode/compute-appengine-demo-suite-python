@@ -53,6 +53,7 @@ QuickStart.prototype.initialize = function() {
       // because duplicate starts can cause confusion and perf problems.
       $('#start').addClass('disabled');
       $('#reset').removeClass('disabled');
+      $('.perf').addClass('disabled');
     }
   });
 
@@ -83,8 +84,10 @@ QuickStart.prototype.initializeButtons_ = function(gce) {
       return;
     }
 
-    // Request started, disable start button to avoid user confusion.
+    // Request started, disable start button and perf toggles to avoid 
+    // user confusion.
     $('#start').addClass('disabled');
+    $('.perf').addClass('disabled');
 
     var instanceNames = [];
     for (var i = 0; i < numInstances; i++) {
@@ -106,6 +109,7 @@ QuickStart.prototype.initializeButtons_ = function(gce) {
       data: {'num_instances': numInstances},
       callback: function() {
         $('#reset').removeClass('disabled');
+        $('.perf').removeClass('disabled');
       }
     });
   });
@@ -117,6 +121,24 @@ QuickStart.prototype.initializeButtons_ = function(gce) {
     gce.stopInstances(function() {
       $('#start').removeClass('disabled');
       $('#reset').addClass('disabled');
+      $('.perf').addClass('disabled');
     });
   });
 };
+
+QuickStart.perfState = {
+  'disk': false,
+  'net': false
+};
+
+QuickStart.perfToggle = function (type) {
+  var id = '#perf-' + type;
+  if (this.perfState[type]) {
+    $(id).hide();
+    this.perfState[type] = false;
+  } else { 
+    $(id).show();
+    this.perfState[type] = true;
+  }
+}
+
