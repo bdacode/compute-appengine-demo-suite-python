@@ -17,9 +17,9 @@ $(document).ready(function() {
 var QuickStart = function() { };
 
 // Recovery mode flag, initialized to false.
-var Recovering = false;
 var IP_ADDR = '8.35.197.0';
-var WS = null;
+var Recovering = false;
+var web_sock = null;
 
 /**
  * Initialize the UI and check if there are instances already up.
@@ -138,14 +138,17 @@ QuickStart.perfToggle = function (type) {
   if (this.perfState[type]) {
     $(id).hide();
     this.perfState[type] = false;
-    WS.close();
+    web_sock.close();
   } else { 
     $(id).show();
     this.perfState[type] = true;
     if ('WebSocket' in window) {
-      WS = new WebSocket('ws://' + IP_ADDR + '/');
-      WS.onopen = function() {
-        WS.send('test');
+      web_sock = new WebSocket('ws://' + IP_ADDR + '/');
+      web_sock.onmessage = function(event) {
+        alert('received: ' + event.data);
+      }
+      web_sock.onopen = function() {
+        web_sock.send('test');
       }
     }
   }
