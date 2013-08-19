@@ -17,7 +17,7 @@ $(document).ready(function() {
 var QuickStart = function() { };
 
 // Recovery mode flag, initialized to false.
-var IP_ADDR = '8.35.197.0';
+var IP_ADDR = '8.35.197.1';
 var Recovering = false;
 var web_sock = null;
 
@@ -148,7 +148,15 @@ QuickStart.perfToggle = function (type) {
         alert('received: ' + event.data);
       }
       web_sock.onopen = function() {
-        web_sock.send('test');
+        var req = {};
+        req.type = type;
+        if (type === 'disk') {
+          req.mode = 'r';
+          req.size = '4K';
+        } else if (type === 'net') {
+          req.num_hosts = parseInt($('#num-instances').val(), 10) - 1;
+        }
+        web_sock.send(JSON.stringify(req));
       }
     }
   }
