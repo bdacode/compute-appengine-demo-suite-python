@@ -45,7 +45,11 @@ class GceAppEngine(object):
 
     instance_dict = {}
     for instance in instances:
-      instance_dict[instance.name] = {'status': instance.status}
+      ipaddr = instance.network_interfaces[0]['accessConfigs'][0]['natIP']
+      instance_dict[instance.name] = {
+                                       'status': instance.status,
+                                       'ipaddr': ipaddr
+                                     }
 
     result_dict = {
       'instances': instance_dict,

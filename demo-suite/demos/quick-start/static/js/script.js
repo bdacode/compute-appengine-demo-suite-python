@@ -17,7 +17,8 @@ $(document).ready(function() {
 var QuickStart = function() { };
 
 // Recovery mode flag, initialized to false.
-var IP_ADDR = '8.35.197.1';
+var IP_ADDR = null;
+var MASTER = 'quick-start-0';
 var Recovering = false;
 var web_sock = null;
 
@@ -30,6 +31,10 @@ QuickStart.prototype.initialize = function() {
       '/' + DEMO_NAME + '/cleanup');
 
   gce.getInstanceStates(function(data) {
+    if (data['instances']['quick-start-0']) {
+      IP_ADDR = data['instances']['quick-start-0']['ipaddr'];
+    }
+    
     var numInstances = parseInt($('#num-instances').val(), 10);
     var startedInstances = parseInt($('#started-instances').val(), 10);
     var currentInstances = data['stateCount']['TOTAL'];
@@ -142,7 +147,7 @@ QuickStart.perfToggle = function (type) {
   } else { 
     $(id).show();
     this.perfState[type] = true;
-    if ('WebSocket' in window) {
+    if (('WebSocket' in window) && IP_ADDR) {
       web_sock = new WebSocket('ws://' + IP_ADDR + '/');
       web_sock.onmessage = function(event) {
         alert('received: ' + event.data);
