@@ -34,3 +34,40 @@ p {
 .project {
   width: 150px;
 }
+
+/* 
+ * The following styling was added to support a d3.js bar chart
+ * for displaying disk perf test results.
+ */
+vizbody {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  position: relative;
+  width: 960px;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.bar {
+  fill: steelblue;
+  fill-opacity: .9;
+}
+
+.x.axis path {
+  display: none;
+}
+
+vizlabel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+

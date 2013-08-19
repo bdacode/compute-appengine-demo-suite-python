@@ -5,7 +5,7 @@ PROJECT=google.com:launchpad
 ZONE=us-central1-b
 GCUTIL="gcutil --project=$PROJECT"
 SNAPSHOT=puppet-conf-model
-NUM_DISKS=3
+NUM_DISKS=4
 
 # Create a list of PD names.
 PDS=

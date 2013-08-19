@@ -12,6 +12,8 @@
 <script type="text/javascript" src="/js/squares.js"></script>
 <script type="text/javascript" src="/js/timer.js"></script>
 <script type="text/javascript" src="/js/counter.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src="/{{ demo_name }}/js/viz.js"></script>
 <script type="text/javascript" src="/{{ demo_name }}/js/script.js"></script>
 {% endblock %}
 
@@ -51,7 +53,9 @@
 &nbsp;&nbsp;&nbsp;
   <span id="elapsed-time">Timer: <span id="timer"></span></span>
 </div>
-<p id="perf-disk" style="display: none">Disk Graph</p>
-<p id="perf-net" style="display: none">Net Graph</p>
+<div id="perf-disk" style="display: none">
+  <input id="sort-checkbox" type="checkbox">Sort Values</input><br>
+</div>
+<div id="perf-net" style="display: none"><br></div>
 <div id="instances"></div>
 {% endblock %}
