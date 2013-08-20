@@ -152,7 +152,7 @@ QuickStart.perfToggle = function (type) {
     var num_hosts = parseInt($('#num-instances').val(), 10) - 1;
     var data = [];
     for (var i = 1; i <= num_hosts; i++) {
-      data.push({ host: parseInt(i, 10), value: 1 });
+      data.push({ host: parseInt(i, 10), value: 0});
     }
     gen_bar_chart(data);
     this.perfState[type] = true;
@@ -160,7 +160,10 @@ QuickStart.perfToggle = function (type) {
       Web_sock = new WebSocket('ws://' + IP_ADDR + '/');
       Web_sock.onmessage = function(event) {
         var res = JSON.parse(event.data);
-        data[res.host-1] = { host: res.host, value: res.value };
+        var before = data[res.host-1];
+        var after = { host: res.host, value: res.value };
+        //alert(res.host + '/' + JSON.stringify(before) + '/' + JSON.stringify(after));
+        data[res.host-1] = { host: res.host, value: parseFloat(res.value, 10) };
         redraw_bars(data);
       }
       Web_sock.onopen = function() {

@@ -45,7 +45,10 @@ class GceAppEngine(object):
 
     instance_dict = {}
     for instance in instances:
-      ipaddr = instance.network_interfaces[0]['accessConfigs'][0]['natIP']
+      try:
+        ipaddr = instance.network_interfaces[0]['accessConfigs'][0]['natIP']
+      except:
+        ipaddr = ''
       instance_dict[instance.name] = {
                                        'status': instance.status,
                                        'ipaddr': ipaddr
