@@ -56,6 +56,12 @@ vizbody {
   shape-rendering: crispEdges;
 }
 
+.line {
+  fill: none;
+  stroke: #444;
+  stroke-width: 1.5px;
+}
+
 .bar {
   fill: steelblue;
   fill-opacity: .9;

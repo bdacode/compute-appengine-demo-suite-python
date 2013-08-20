@@ -13,7 +13,7 @@
 <script type="text/javascript" src="/js/timer.js"></script>
 <script type="text/javascript" src="/js/counter.js"></script>
 <script src="http://d3js.org/d3.v3.min.js"></script>
-<script type="text/javascript" src="/{{ demo_name }}/js/viz.js"></script>
+<script type="text/javascript" src="/{{ demo_name }}/js/vis.js"></script>
 <script type="text/javascript" src="/{{ demo_name }}/js/script.js"></script>
 {% endblock %}
 
@@ -46,6 +46,10 @@
     Net Perf
     <input type="checkbox" class="perf disabled" onclick="QuickStart.perfToggle('net')">
   </span>
+  <span>
+    Random
+    <input type="checkbox" class="perf disabled" onclick="QuickStart.perfToggle('random')">
+  </span>
 </p>
 
 <div>
@@ -53,9 +57,7 @@
 &nbsp;&nbsp;&nbsp;
   <span id="elapsed-time">Timer: <span id="timer"></span></span>
 </div>
-<div id="perf-disk" style="display: none">
-  <input id="sort-checkbox" type="checkbox">Sort Values</input><br>
-</div>
-<div id="perf-net" style="display: none"><br></div>
+<div id="perf-graph" style="display: none"><br></div>
+  <!--<input id="sort-checkbox" type="checkbox">Sort Values</input><br>-->
 <div id="instances"></div>
 {% endblock %}

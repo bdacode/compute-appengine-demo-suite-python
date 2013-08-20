@@ -5,39 +5,6 @@
  * of running instances. Stops running instances.
  */
 
-var Data = [
-];
-
-/*
-  { letter: 'A', frequency:	.08167 },
-  { letter: 'B', frequency:	.01492 },
-  { letter: 'C', frequency:	.02780 },
-  { letter: 'D', frequency:	.04253 },
-  { letter: 'E', frequency:	.12702 },
-  { letter: 'F', frequency:	.02288 },
-  { letter: 'G', frequency:	.02022 },
-  { letter: 'H', frequency:	.06094 },
-  { letter: 'I', frequency:	.06973 },
-  { letter: 'J', frequency:	.00153 },
-  { letter: 'K', frequency:	.00747 },
-  { letter: 'L', frequency:	.04025 },
-  { letter: 'M', frequency:	.02517 },
-  { letter: 'N', frequency:	.06749 },
-  { letter: 'O', frequency:	.07507 },
-  { letter: 'P', frequency:	.01929 },
-  { letter: 'Q', frequency:	.00098 },
-  { letter: 'R', frequency:	.05987 },
-  { letter: 'S', frequency:	.06333 },
-  { letter: 'T', frequency:	.09056 },
-  { letter: 'U', frequency:	.02758 },
-  { letter: 'V', frequency:	.01037 },
-  { letter: 'W', frequency:	.02465 },
-  { letter: 'X', frequency:	.00150 },
-  { letter: 'Y', frequency:	.01971 },
-  { letter: 'Z', frequency:	.00074 }
-];
-*/
-
 $(document).ready(function() {
   var quickStart = new QuickStart();
   quickStart.initialize();
@@ -53,7 +20,8 @@ var QuickStart = function() { };
 var IP_ADDR = null;
 var MASTER = 'quick-start-0';
 var Recovering = false;
-var web_sock = null;
+var Web_sock = null;
+var Repeating_tests = null;
 
 /**
  * Initialize the UI and check if there are instances already up.
@@ -172,39 +140,42 @@ QuickStart.perfState = {
 };
 
 QuickStart.perfToggle = function (type) {
-  var id = '#perf-' + type;
+  var id = '#perf-graph';
   if (this.perfState[type]) {
-    del_bar_chart(Data);
+    clearInterval(Repeating_tests);
+    del_bar_chart(type, data);
     $(id).hide();
     this.perfState[type] = false;
-    web_sock.close();
+    Web_sock.close();
   } else { 
     $(id).show();
-    gen_bar_chart(Data);
+    var num_hosts = parseInt($('#num-instances').val(), 10) - 1;
+    var data = [];
+    for (var i = 1; i <= num_hosts; i++) {
+      data.push({ host: parseInt(i, 10), value: 1 });
+    }
+    gen_bar_chart(data);
     this.perfState[type] = true;
     if (('WebSocket' in window) && IP_ADDR) {
-      web_sock = new WebSocket('ws://' + IP_ADDR + '/');
-      web_sock.onmessage = function(event) {
+      Web_sock = new WebSocket('ws://' + IP_ADDR + '/');
+      Web_sock.onmessage = function(event) {
         var res = JSON.parse(event.data);
-        if (res.type === 'disk') {
-          Data.push({ letter: res.host, frequency: res.result.throughput });
-          //Data[res.host] = res.result.throughput;
-          del_bar_chart(Data);
-          gen_bar_chart(Data);
-        } else if (type === 'net') {
-        }
-        //alert(res); 
+        data[res.host-1] = { host: res.host, value: res.value };
+        redraw_bars(data);
       }
-      web_sock.onopen = function() {
+      Web_sock.onopen = function() {
         var req = {};
         req.type = type;
         if (type === 'disk') {
-          req.mode = 'r';
-          req.size = '4K';
+          req.mode = 'randread';
+          req.size = '64K';
         } else if (type === 'net') {
           req.num_hosts = parseInt($('#num-instances').val(), 10) - 1;
         }
-        web_sock.send(JSON.stringify(req));
+        var req_str = JSON.stringify(req);
+        Repeating_tests = setInterval(function() {
+          Web_sock.send(req_str);
+        }, 5000);
       }
     }
   }
