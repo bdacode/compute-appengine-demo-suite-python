@@ -6,11 +6,15 @@ var x2 = null;
 var y = null;
 var xAxis = null;
 var yAxis = null;
+var globalMax = 0;
 
 function redraw_bars(data) {
   var max = d3.max(data, function(d) { return d.value; });
+  if (max > globalMax) {
+    globalMax = max;
+  }
   var avg = d3.sum(data, function(d) { return d.value }) / data.length;
-  y.domain([0, max]);
+  y.domain([0, globalMax]);
   svg.selectAll("g.y.axis").call(yAxis);
 
   svg.selectAll("rect")

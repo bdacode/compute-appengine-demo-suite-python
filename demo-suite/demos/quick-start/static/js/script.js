@@ -160,9 +160,6 @@ QuickStart.perfToggle = function (type) {
       Web_sock = new WebSocket('ws://' + IP_ADDR + '/');
       Web_sock.onmessage = function(event) {
         var res = JSON.parse(event.data);
-        var before = data[res.host-1];
-        var after = { host: res.host, value: res.value };
-        //alert(res.host + '/' + JSON.stringify(before) + '/' + JSON.stringify(after));
         data[res.host-1] = { host: res.host, value: parseFloat(res.value, 10) };
         redraw_bars(data);
       }
@@ -171,9 +168,11 @@ QuickStart.perfToggle = function (type) {
         req.type = type;
         if (type === 'disk') {
           req.mode = 'randread';
-          req.size = '8m';
+          req.size = '4m';
         } else if (type === 'net') {
           req.num_hosts = parseInt($('#num-instances').val(), 10) - 1;
+          req.format = 'm';
+          req.time = '4';
         }
         var req_str = JSON.stringify(req);
         Web_sock.send(req_str);
