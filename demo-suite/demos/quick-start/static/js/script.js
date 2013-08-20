@@ -171,11 +171,12 @@ QuickStart.perfToggle = function (type) {
         req.type = type;
         if (type === 'disk') {
           req.mode = 'randread';
-          req.size = '64K';
+          req.size = '8m';
         } else if (type === 'net') {
           req.num_hosts = parseInt($('#num-instances').val(), 10) - 1;
         }
         var req_str = JSON.stringify(req);
+        Web_sock.send(req_str);
         Repeating_tests = setInterval(function() {
           Web_sock.send(req_str);
         }, 5000);
