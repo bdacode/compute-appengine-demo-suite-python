@@ -6,6 +6,9 @@
  */
 
 var Data = [
+];
+
+/*
   { letter: 'A', frequency:	.08167 },
   { letter: 'B', frequency:	.01492 },
   { letter: 'C', frequency:	.02780 },
@@ -33,6 +36,7 @@ var Data = [
   { letter: 'Y', frequency:	.01971 },
   { letter: 'Z', frequency:	.00074 }
 ];
+*/
 
 $(document).ready(function() {
   var quickStart = new QuickStart();
@@ -183,7 +187,8 @@ QuickStart.perfToggle = function (type) {
       web_sock.onmessage = function(event) {
         var res = JSON.parse(event.data);
         if (res.type === 'disk') {
-          Data[res.host] = res.result.throughput;
+          Data.push({ letter: res.host, frequency: res.result.throughput });
+          //Data[res.host] = res.result.throughput;
           del_bar_chart(Data);
           gen_bar_chart(Data);
         } else if (type === 'net') {

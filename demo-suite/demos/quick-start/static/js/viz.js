@@ -1,5 +1,8 @@
 var svg = null;
 
+function add_bar(x, y) {
+}
+
 function del_bar_chart(data) {
   svg = d3.select("#perf-disk").select("svg").remove();
 }
@@ -9,7 +12,7 @@ function gen_bar_chart(data) {
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
-  var formatPercent = d3.format(".0%");
+  //var formatPercent = d3.format(".0%");
 
   var x = d3.scale.ordinal()
     .rangeRoundBands([0, width], .1, 1);
@@ -23,8 +26,8 @@ function gen_bar_chart(data) {
 
   var yAxis = d3.svg.axis()
     .scale(y)
-    .orient("left")
-    .tickFormat(formatPercent);
+    .orient("left");
+    //.tickFormat(formatPercent);
 
   svg = d3.select("#perf-disk").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -52,7 +55,7 @@ function gen_bar_chart(data) {
       .attr("y", 6)
       .attr("dy", ".71em")
       .style("text-anchor", "end")
-      .text("Frequency");
+      .text("Througput");
 
   svg.selectAll(".bar")
       .data(data)
