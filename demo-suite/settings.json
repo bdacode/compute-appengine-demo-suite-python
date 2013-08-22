@@ -4,7 +4,7 @@
         "api_version": "v1beta15",
         "image": "centos-6-v20130515",
         "kernel": "https://www.googleapis.com/compute/v1beta15/projects/google/global/kernels/gce-v20130813",
-        "machine_type": "n1-standard-4",
+        "machine_type": "n1-standard-1",
         "zone": "us-central1-b",
         "network": "default",
         "access_configs": [{

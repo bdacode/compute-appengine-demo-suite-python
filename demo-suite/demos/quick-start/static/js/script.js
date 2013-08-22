@@ -22,6 +22,7 @@ var MASTER = 'quick-start-0';
 var Recovering = false;
 var Web_sock = null;
 var Repeating_tests = null;
+var Req_count = 0;
 var Data = [];
 
 /**
@@ -148,6 +149,7 @@ QuickStart.perfToggle = function (type) {
     $(id).hide();
     this.perfState[type] = false;
     Web_sock.close();
+    Req_count = 0;
   } else { 
     $(id).show();
     var num_hosts = parseInt($('#num-instances').val(), 10) - 1;
@@ -164,7 +166,9 @@ QuickStart.perfToggle = function (type) {
           }
         } 
         Data[res.host-1] = { host: res.host, value: parseFloat(res.value, 10) };
-        redraw_bars(Data);
+        if (Req_count > 2) {
+          redraw_bars(Data);
+        }
       }
       Web_sock.onopen = function() {
         var req = {};
@@ -186,6 +190,7 @@ QuickStart.perfToggle = function (type) {
         var req_str = JSON.stringify(req);
         Web_sock.send(req_str);
         Repeating_tests = setInterval(function() {
+          Req_count++;
           Web_sock.send(req_str);
         }, refresh_interval);
       }
