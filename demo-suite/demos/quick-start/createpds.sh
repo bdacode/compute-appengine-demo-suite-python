@@ -5,7 +5,7 @@ PROJECT=google.com:launchpad
 ZONE=us-central1-b
 GCUTIL="gcutil --project=$PROJECT"
 SNAPSHOT=puppet-conf-model
-NUM_DISKS=6
+NUM_DISKS=51
 
 # Create a list of PD names.
 PDS=
@@ -19,4 +19,4 @@ echo $PDS
 $GCUTIL deletedisk -f --zone=$ZONE $PDS
 
 # Create the new ones.
-#$GCUTIL adddisk --zone=$ZONE --source_snapshot=$SNAPSHOT $PDS
+$GCUTIL adddisk --zone=$ZONE --source_snapshot=$SNAPSHOT $PDS

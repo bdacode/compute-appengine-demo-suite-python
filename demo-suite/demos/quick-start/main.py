@@ -25,6 +25,7 @@ import google_cloud.gce_appengine as gce_appengine
 import google_cloud.oauth as oauth
 import jinja2
 import oauth2client.appengine as oauth2client
+import random
 import time
 import user_data
 import webapp2
@@ -33,6 +34,19 @@ from google.appengine.ext import ndb
 from google.appengine.api import users
 
 DEMO_NAME = 'quick-start'
+
+tag_count = {
+  'production': 4,
+  'staging': 3,
+  'test': 2,
+  'dev': 1
+}
+
+# Load tag distribution dictionary.
+tags = []
+for tag in tag_count:
+  x = [tag] * tag_count[tag];
+  tags += x
 
 class Objective(ndb.Model):
   """ This data model keeps track of work in progress. """
@@ -165,8 +179,11 @@ class Instance(webapp2.RequestHandler):
         dm = gce.DiskMount(disk=disk, boot=True)
         kernel = gce_project.settings['compute']['kernel']
         disk_mounts.append(dm)
+      x = int(random.random() * len(tags));
+      tag = tags[x]
+
       instance = gce.Instance(name=instance_name, disk_mounts=disk_mounts,
-                              kernel=kernel)
+                              kernel=kernel, tags=[tag])
       instances.append(instance) 
 	
     response = gce_appengine.GceAppEngine().run_gce_request(

@@ -22,6 +22,7 @@ var MASTER = 'quick-start-0';
 var Recovering = false;
 var Web_sock = null;
 var Repeating_tests = null;
+var Data = [];
 
 /**
  * Initialize the UI and check if there are instances already up.
@@ -143,42 +144,50 @@ QuickStart.perfToggle = function (type) {
   var id = '#perf-graph';
   if (this.perfState[type]) {
     clearInterval(Repeating_tests);
-    del_bar_chart(type, data);
+    del_bar_chart();
     $(id).hide();
     this.perfState[type] = false;
     Web_sock.close();
   } else { 
     $(id).show();
     var num_hosts = parseInt($('#num-instances').val(), 10) - 1;
-    var data = [];
-    for (var i = 1; i <= num_hosts; i++) {
-      data.push({ host: parseInt(i, 10), value: 0});
-    }
-    gen_bar_chart(data);
+    gen_bar_chart();
     this.perfState[type] = true;
     if (('WebSocket' in window) && IP_ADDR) {
       Web_sock = new WebSocket('ws://' + IP_ADDR + '/');
       Web_sock.onmessage = function(event) {
         var res = JSON.parse(event.data);
-        data[res.host-1] = { host: res.host, value: parseFloat(res.value, 10) };
-        redraw_bars(data);
+        if (res.host > Data.length) {
+          for (var i = Data.length; i < (res.host-1); i++) {
+            var h = parseInt(i+1, 10);
+            Data[i] = { host: h, value: 0 };
+          }
+        } 
+        Data[res.host-1] = { host: res.host, value: parseFloat(res.value, 10) };
+        redraw_bars(Data);
       }
       Web_sock.onopen = function() {
         var req = {};
+        var refresh_interval = 3000;
         req.type = type;
         if (type === 'disk') {
-          req.mode = 'randread';
-          req.size = '4m';
+          req.mode = 'read';
+          req.size = '100m';
+          req.blocksize = '1m';
+          req.direct = '1';
+          req.iodepth = '1';
+          refresh_interval = 3000;
         } else if (type === 'net') {
           req.num_hosts = parseInt($('#num-instances').val(), 10) - 1;
           req.format = 'm';
-          req.time = '4';
+          req.time = '9';
+          refresh_interval = 10000;
         }
         var req_str = JSON.stringify(req);
         Web_sock.send(req_str);
         Repeating_tests = setInterval(function() {
           Web_sock.send(req_str);
-        }, 5000);
+        }, refresh_interval);
       }
     }
   }
