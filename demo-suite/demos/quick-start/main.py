@@ -171,19 +171,24 @@ class Instance(webapp2.RequestHandler):
     instances = []
     for i in range(num_instances):
       instance_name = '%s-%d' % (DEMO_NAME, i)
-      disk_name = '%s' % instance_name
-      disk = disks.get(disk_name, None)
       disk_mounts = []
       kernel = None
-      if disk:
-        dm = gce.DiskMount(disk=disk, boot=True)
-        kernel = gce_project.settings['compute']['kernel']
-        disk_mounts.append(dm)
+      machine_type_name = 'n1-standard-1'
+      if i <= 51:
+        disk_name = '%s' % instance_name
+        disk = disks.get(disk_name, None)
+        if disk:
+          machine_type_name = 'n1-standard-4'
+          dm = gce.DiskMount(disk=disk, boot=True)
+          kernel = gce_project.settings['compute']['kernel']
+          disk_mounts.append(dm)
       x = int(random.random() * len(tags));
       tag = tags[x]
 
       instance = gce.Instance(name=instance_name, disk_mounts=disk_mounts,
-                              kernel=kernel, tags=[tag])
+                              machine_type_name=machine_type_name, 
+                              kernel=kernel, zone_name=gce_zone_name,
+                              tags=[tag])
       instances.append(instance) 
 	
     response = gce_appengine.GceAppEngine().run_gce_request(

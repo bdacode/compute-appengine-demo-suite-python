@@ -17,7 +17,7 @@ $(document).ready(function() {
 var QuickStart = function() { };
 
 // Recovery mode flag, initialized to false.
-var IP_ADDR = null;
+//var IP_ADDR = null;
 var MASTER = 'quick-start-0';
 var Recovering = false;
 var Web_sock = null;
@@ -166,7 +166,7 @@ QuickStart.perfToggle = function (type) {
           }
         } 
         Data[res.host-1] = { host: res.host, value: parseFloat(res.value, 10) };
-        if (Req_count > 2) {
+        if (Req_count > 1) {
           redraw_bars(Data);
         }
       }

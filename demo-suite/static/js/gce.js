@@ -19,6 +19,8 @@
  *
  */
 
+var IP_ADDR = '';
+
 /**
  * Gce class starts, stops instances and controls UI.
  * @constructor
@@ -327,6 +329,11 @@ Gce.prototype.summarizeStates = function(data) {
     states[value] = 0;
   });
   states['TOTAL'] = 0;
+
+  if (('instances' in data) && ('quick-start-0' in data['instances']) &&
+      ('ipaddr' in data['instances']['quick-start-0'])) {
+    IP_ADDR = data['instances']['quick-start-0']['ipaddr'];
+  }
 
   $.each(data['instances'], function(i, d) {
     state = d['status'];

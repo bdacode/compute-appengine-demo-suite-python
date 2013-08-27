@@ -2,7 +2,7 @@
 #set -x
 
 PROJECT=google.com:launchpad
-ZONE=us-central1-b
+ZONE=us-central2-a
 GCUTIL="gcutil --project=$PROJECT"
 SNAPSHOT=puppet-conf-model
 NUM_DISKS=51
