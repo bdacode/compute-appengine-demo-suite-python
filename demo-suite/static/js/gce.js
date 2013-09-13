@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ s WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
@@ -137,7 +137,7 @@ Gce.prototype.startInstances = function(numInstances, startOptions) {
     }
   }
 
-  if (!Recovering) {
+  if ((typeof Recovering !== 'undefined') && (!Recovering)) {
     var ajaxRequest = {
       type: 'POST',
       url: this.startInstanceUrl_,
@@ -262,10 +262,17 @@ Gce.prototype.heartbeat_ = function(numInstances, callback, terminalState) {
     }
   };
 
+  // If we're in recovery mode (i.e. user refresh the page before request
+  // is complete), start the polling immediately to refresh state ASAP,
+  // instead of waiting 2s to refresh the display.
   var that = this;
-  setTimeout(function() {
+  if ((typeof Recovering !== 'undefined') && Recovering) {
     that.getStatuses_(success);
-  }, this.HEARTBEAT_TIMEOUT_);
+  } else {
+    setTimeout(function() {
+      that.getStatuses_(success);
+    }, this.HEARTBEAT_TIMEOUT_);
+  }
 };
 
 Gce.prototype.continuousHeartbeat_ = function(callback) {

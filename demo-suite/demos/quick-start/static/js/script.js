@@ -25,6 +25,10 @@ var Repeating_tests = null;
 var Req_count = 0;
 var Data = [];
 
+// Starting and resetting notification strings.
+var STARTING = 'Starting...';
+var RESETTING = 'Resetting...';
+
 /**
  * Initialize the UI and check if there are instances already up.
  */
@@ -39,10 +43,9 @@ QuickStart.prototype.initialize = function() {
     }
     
     var numInstances = parseInt($('#num-instances').val(), 10);
-    var startedInstances = parseInt($('#started-instances').val(), 10);
     var currentInstances = data['stateCount']['TOTAL'];
     if (currentInstances != 0) {
-      // Instance are already running so we're in recovery mode. Calculate 
+      // Instances are already running so we're in recovery mode. Calculate 
       // current elapsed time and set timer element accordingly.
       var startTime = parseInt($('#start-time').val(), 10);
       var currentTime = Math.round(new Date().getTime() / 1000)
@@ -53,11 +56,12 @@ QuickStart.prototype.initialize = function() {
       // status polling, we simulate start click with number of instances 
       // last started, but we set Recovering flag to true to inhibit 
       // sending of start request to GCE.
-      $('#num-instances').val(startedInstances);
       Recovering = true;
       $('#start').click();
-      Recovering = false;
-      $('#num-instances').val(numInstances);
+      var targetInstances = parseInt($('#target-instances').val(), 10);
+      if (targetInstances == 0) {
+        $('#reset').click();
+      }
 
       // In recovery mode, resets are ok but don't let user resend start,
       // because duplicate starts can cause confusion and perf problems.
@@ -88,8 +92,8 @@ QuickStart.prototype.initializeButtons_ = function(gce) {
       alert('Max instances is 1000, starting 1000 instead.');
       numInstances = 1000;
     } else if (numInstances < 0) {
-      alert('At least one instance needs to be started, starting 1 instead.');
-      numInstances = 1;
+      alert('At least one instance needs to be started.');
+      return;
     } else if (numInstances === 0) {
       return;
     }
@@ -97,6 +101,8 @@ QuickStart.prototype.initializeButtons_ = function(gce) {
     // Request started, disable start button and perf toggles to avoid 
     // user confusion.
     $('#start').addClass('disabled');
+    $('#reset').removeClass('disabled');
+    $('#in-progress').text(STARTING);
     $('.perf').addClass('disabled');
 
     var instanceNames = [];
@@ -118,8 +124,13 @@ QuickStart.prototype.initializeButtons_ = function(gce) {
     gce.startInstances(numInstances, {
       data: {'num_instances': numInstances},
       callback: function() {
-        $('#reset').removeClass('disabled');
+        // Start completed, start button should already be disabled, and
+        // reset button should already be enabled.
+        $('#in-progress').text('');
         $('.perf').removeClass('disabled');
+        if (Recovering) {
+          Recovering = false;
+        }
       }
     });
   });
@@ -127,11 +138,20 @@ QuickStart.prototype.initializeButtons_ = function(gce) {
   // Initialize reset button click event to stop instances.
   $('#reset').click(function() {
     that.counter_.targetState = 'TOTAL';
-    $('#num-instances').val(0);
+    //$('#num-instances').val(0);
+    // Reset requested, disable start button but allow resending of reset.
+    $('#start').addClass('disabled');
+    $('#reset').removeClass('disabled');
+    $('#in-progress').text(RESETTING);
     gce.stopInstances(function() {
+      // Reset completed, allow start button and disallow reset button.
       $('#start').removeClass('disabled');
       $('#reset').addClass('disabled');
+      $('#in-progress').text('');
       $('.perf').addClass('disabled');
+      if (Recovering) {
+        Recovering = false;
+      }
     });
   });
 };

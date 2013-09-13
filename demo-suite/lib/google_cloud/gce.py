@@ -23,6 +23,7 @@ import lib_path
 from apiclient import discovery
 from apiclient import errors as api_errors
 from apiclient import http
+from google.appengine.api import memcache
 import httplib2
 import oauth2client.client as client
 try:
@@ -72,14 +73,19 @@ class GceProject(object):
     if settings:
       self.settings.update(settings)
 
-    self.gce_url = '%s/%s' % (GCE_URL, self.settings['compute']['api_version'])
+    api_version = self.settings['compute']['api_version']
+    self.gce_url = '%s/%s' % (GCE_URL, api_version)
 
-    discovery_doc_path = 'discovery/compute/%s.json' % self.settings['compute']['api_version']
-    discovery_doc = open(discovery_doc_path, 'r').read()
+    # Ability to build API from a local discovery doc is disabled here,
+    # by commenting out code. We're not removing the code altogether, 
+    # in case we ever want to revert to using a local discovery doc.
+    #discovery_doc_path = 'discovery/compute/%s.json' % api_version
+    #discovery_doc = open(discovery_doc_path, 'r').read()
 
     auth_http = self._auth_http(credentials)
-    self.service = discovery.build_from_document(
-        discovery_doc, self.settings['compute']['api_version'], http=auth_http)
+    #self.service = discovery.build_from_document(
+      #discovery_doc, api_version, http=auth_http)
+    self.service = discovery.build('compute', api_version, http=auth_http)
 
     self.project_id = project_id
     if not self.project_id:
@@ -365,7 +371,7 @@ class GceProject(object):
       An authorized instance of httplib2.Http.
     """
 
-    http = httplib2.Http(timeout=30)
+    http = httplib2.Http(memcache, timeout=30)
     auth_http = credentials.authorize(http)
     return auth_http
 
@@ -602,7 +608,8 @@ class Instance(GceResource):
 
     self.name = json_resource['name']
     self.zone_name = Zone(json_resource['zone'].split('/')[-1])
-    self.machine_type = MachineType(json_resource['machineType'].split('/')[-1],                                    self.zone_name)
+    self.machine_type = MachineType(json_resource['machineType'].split('/')[-1],
+                                    self.zone_name)
     self.network_interfaces = json_resource['networkInterfaces']
     if json_resource.get('description', None):
       self.description = json_resource['description']
