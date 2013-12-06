@@ -19,7 +19,10 @@ var QuickStart = function() { };
 // Recovery mode flag, initialized to false.
 var Recovering = false;
 
-// Starting and resetting notification strings.
+// Operation in progress, starting, and resetting notification strings.
+var Operation = 'Create Disks';
+var CREATING_DISKS = 'Creating Disks...';
+var DELETING_DISKS = 'Deleting Disks...';
 var STARTING = 'Starting...';
 var RESETTING = 'Resetting...';
 
@@ -102,14 +105,16 @@ QuickStart.prototype.initializeButtons_ = function(gce) {
         document.getElementById('instances'), instanceNames, {
           drawOnStart: true
         });
-    that.counter_.targetState = 'RUNNING';
+    that.counter_.targetState = 'READY';
     gce.setOptions({
       squares: squares,
       counter: that.counter_,
       timer: that.timer_
     });
+
+    Operation = $('#start').text();
     gce.startInstances(numInstances, {
-      data: {'num_instances': numInstances},
+      data: {'num_instances': numInstances, 'operation': Operation},
       callback: function() {
         // Start completed, start button should already be disabled, and
         // reset button should already be enabled.
@@ -137,6 +142,6 @@ QuickStart.prototype.initializeButtons_ = function(gce) {
       if (Recovering) {
         Recovering = false;
       }
-    });
+    }, Operation);
   });
 };

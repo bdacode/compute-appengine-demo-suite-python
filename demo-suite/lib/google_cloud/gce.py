@@ -924,9 +924,9 @@ class Disk(GceResource):
         'name': self.name,
     }
     if self.description:
-      instance['description'] = self.description
+      disk['description'] = self.description
     if self.size_gb:
-      instance['sizeGb'] = self.size_gb
+      disk['sizeGb'] = self.size_gb
     return disk
 
   def from_json(self, json_resource):
@@ -941,6 +941,8 @@ class Disk(GceResource):
     self.size_gb = json_resource['sizeGb']
     if json_resource.get('description', None):
       self.description = json_resource['description']
+    if json_resource.get('status', None):
+      self.status = json_resource['status']
 
   def set_defaults(self):
     """Set any defaults before insert."""

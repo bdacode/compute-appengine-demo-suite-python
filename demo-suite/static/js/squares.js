@@ -98,6 +98,8 @@ var Squares = function(container, instanceNames, squareOptions) {
       'SERVING': 'status-serving',
       'STOPPING': 'status-stopping',
       'STOPPED': 'status-stopped',
+      'CREATING': 'status-staging',
+      'READY': 'status-running',
     };
   }
   if (squareOptions.drawOnStart) {
@@ -176,7 +178,7 @@ Squares.prototype.getNumCols_ = function() {
  * @param {Object} updateData The status data returned from the server.
  */
 Squares.prototype.update = function(updateData) {
-  var instanceStatus = updateData['instances'] || {};
+  var instanceStatus = updateData['resources'] || {};
   for (var i = 0; i < this.instanceNames_.length; i++) {
     var instanceName = this.instanceNames_[i];
     var statusClass = null;

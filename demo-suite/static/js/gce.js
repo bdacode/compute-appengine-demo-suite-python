@@ -102,6 +102,7 @@ Gce.prototype.HEARTBEAT_TIMEOUT_ = 2000;
  * @private
  */
 Gce.prototype.STATES = [
+  // Instance states
   'UNKNOWN',
   'PROVISIONING',
   'STAGING',
@@ -110,6 +111,9 @@ Gce.prototype.STATES = [
   'STOPPING',
   'STOPPED',
   'TERMINATED',
+  // Disk states
+  'CREATING',
+  'READY',
 ];
 
 /**
@@ -154,7 +158,7 @@ Gce.prototype.startInstances = function(numInstances, startOptions) {
   }
   if (!this.doContinuousHeartbeat_
     && (this.gceUiOptions || startOptions.callback)) {
-    var terminalState = 'RUNNING'
+    var terminalState = 'READY'
     if (startOptions.checkServing) {
       terminalState = 'SERVING'
     }
@@ -167,8 +171,8 @@ Gce.prototype.startInstances = function(numInstances, startOptions) {
  * @param {function} callback A callback function to call when instances
  *     have stopped.
  */
-Gce.prototype.stopInstances = function(callback) {
-  var data = {}
+Gce.prototype.stopInstances = function(callback, operation) {
+  var data = {'operation': operation}
 
   if (this.gceUiOptions.timer && this.gceUiOptions.timer.start) {
     this.gceUiOptions.timer.start();
@@ -286,7 +290,6 @@ Gce.prototype.continuousHeartbeat_ = function(callback) {
   setTimeout(function() {
     that.getStatuses_(success);
   }, this.HEARTBEAT_TIMEOUT_);
-
 }
 
 /**
@@ -299,6 +302,7 @@ Gce.prototype.continuousHeartbeat_ = function(callback) {
 Gce.prototype.getStatuses_ = function(success, optionalData) {
   var that = this;
   var localSuccess = function(data) {
+    //alert(JSON.stringify(data));
     that.summarizeStates(data);
     that.updateUI_(data);
     success(data);
@@ -308,13 +312,14 @@ Gce.prototype.getStatuses_ = function(success, optionalData) {
     type: 'GET',
     url: this.listInstanceUrl_,
     dataType: 'json',
+    data: {},
     success: localSuccess,
     statusCode: this.statusCodeResponseFunctions_
   };
-  ajaxRequest.data = {}
   if (optionalData) {
     ajaxRequest.data = optionalData;
   }
+  ajaxRequest.data['operation'] = Operation;
   if (this.commonQueryData_) {
     $.extend(ajaxRequest.data, this.commonQueryData_)
   }
@@ -335,7 +340,7 @@ Gce.prototype.summarizeStates = function(data) {
   });
   states['TOTAL'] = 0;
 
-  $.each(data['instances'], function(i, d) {
+  $.each(data['resources'], function(i, d) {
     state = d['status'];
     if (!states.hasOwnProperty(state)) {
       state = 'UNKNOWN';

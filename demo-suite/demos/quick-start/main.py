@@ -122,13 +122,22 @@ class Instance(webapp2.RequestHandler):
     Return the results as JSON mapping instance name to status.
     """
 
+    operation = self.request.get('operation')
+    logging.info('/instance GET operation: ' + operation)
+
     gce_project_id = data_handler.stored_user_data[user_data.GCE_PROJECT_ID]
     gce_zone_name = data_handler.stored_user_data[user_data.GCE_ZONE_NAME]
     gce_project = gce.GceProject(
         oauth_decorator.credentials, project_id=gce_project_id,
         zone_name=gce_zone_name)
-    gce_appengine.GceAppEngine().list_demo_instances(
-        self, gce_project, DEMO_NAME)
+
+
+    if operation == 'Create Disks':
+        gce_appengine.GceAppEngine().list_demo_resources(
+            self, gce_project, DEMO_NAME, gce_project.list_disks)
+    else:
+        gce_appengine.GceAppEngine().list_demo_resources(
+            self, gce_project, DEMO_NAME, gce_project.list_instances)
 
   @data_handler.data_required
   def post(self):
@@ -143,13 +152,33 @@ class Instance(webapp2.RequestHandler):
         zone_name=gce_zone_name)
 
     num_instances = int(self.request.get('num_instances'))
-    instances = [gce.Instance('%s-%d' % (DEMO_NAME, i), zone_name=gce_zone_name)
+    operation = self.request.get('operation')
+    logging.info('/instance POST operation: ' + operation)
+
+    # Create data strucutres for disks, disk_mounts, and instances, 
+    # one for each VM.
+    disks = [gce.Disk('%s-%d' % (DEMO_NAME, i), size_gb=10,
+                      zone_name=gce_zone_name)
                  for i in range(num_instances)]
-    response = gce_appengine.GceAppEngine().run_gce_request(
-        self,
-        gce_project.bulk_insert,
-        'Error inserting instances: ',
-        resources=instances)
+    disk_mounts = [gce.DiskMount(disk=disks[i], boot=True)
+                   for i in range(num_instances)]
+    instances = [gce.Instance('%s-%d' % (DEMO_NAME, i), 
+                   zone_name=gce_zone_name,
+                   disk_mounts=[disk_mounts[i]])
+                     for i in range(num_instances)]
+
+    if operation == 'Create Disks':
+      response = gce_appengine.GceAppEngine().run_gce_request(
+          self,
+          gce_project.bulk_insert,
+          'Error inserting instances: ',
+          resources=disks)
+    elif operation == 'Start':
+      response = gce_appengine.GceAppEngine().run_gce_request(
+          self,
+          gce_project.bulk_insert,
+          'Error inserting instances: ',
+          resources=instances)
 
     # Record objective in datastore so we can recover work in progress.
     updateObjective(gce_project_id, num_instances)
@@ -165,6 +194,9 @@ class Cleanup(webapp2.RequestHandler):
   @data_handler.data_required
   def post(self):
     """Stop instances using the gce_appengine helper class."""
+    operation = self.request.get('operation')
+    logging.info('/cleanup POST operation: ' + operation)
+    
     gce_project_id = data_handler.stored_user_data[user_data.GCE_PROJECT_ID]
     gce_zone_name = data_handler.stored_user_data[user_data.GCE_ZONE_NAME]
     user_id = users.get_current_user().user_id()
@@ -172,8 +204,13 @@ class Cleanup(webapp2.RequestHandler):
         oauth2client.CredentialsModel, user_id, 'credentials').get()
     gce_project = gce.GceProject(credentials, project_id=gce_project_id,
         zone_name=gce_zone_name)
-    gce_appengine.GceAppEngine().delete_demo_instances(
-        self, gce_project, DEMO_NAME)
+
+    if operation == 'Create Disks':
+      gce_appengine.GceAppEngine().delete_demo_resources(
+          self, gce_project, DEMO_NAME, gce_project.list_disks)
+    else:
+      gce_appengine.GceAppEngine().delete_demo_resources(
+          self, gce_project, DEMO_NAME, gce_project.list_instances)
 
     # Record reset objective in datastore so we can recover work in progress.
     updateObjective(gce_project_id, 0)

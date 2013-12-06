@@ -24,60 +24,64 @@ MAX_RESULTS = 100
 class GceAppEngine(object):
   """Contains generic GCE methods for demos."""
 
-  def list_demo_instances(self, request_handler, gce_project, demo_name):
-    """Retrieves instance list for the demo.
+  def list_demo_resources(self, request_handler, gce_project, demo_name, 
+                          lister):
+    """Retrieves resource list for the demo.
 
-    Sends the instance list in the response as a JSON object, mapping instance
+    Sends the resource list in the response as a JSON object, mapping resource 
     name to status.
 
     Args:
       request_handler: An instance of webapp2.RequestHandler.
       gce_project: An object of type gce.GceProject.
       demo_name: The string name of the demo.
+      lister: The function to call to enumerate the desired resource type.
     """
 
-    instances = self.run_gce_request(
+    resources = self.run_gce_request(
         request_handler,
-        gce_project.list_instances,
-        'Error listing instances: ',
+        lister,
+        'Error listing resources: ',
         filter='name eq ^%s.*' % demo_name,
         maxResults=MAX_RESULTS)
 
-    instance_dict = {}
-    for instance in instances:
-      instance_dict[instance.name] = {'status': instance.status}
+    resource_dict = {}
+    for resource in resources:
+      resource_dict[resource.name] = {'status': resource.status}
 
     result_dict = {
-      'instances': instance_dict,
+      'resources': resource_dict,
     }
     request_handler.response.headers['Content-Type'] = 'application/json'
     request_handler.response.out.write(json.dumps(result_dict))
 
-  def delete_demo_instances(self, request_handler, gce_project, demo_name):
-    """Deletes instances for the demo.
+  def delete_demo_resources(self, request_handler, gce_project, demo_name, 
+                            lister):
+    """Deletes demo resources.
 
-    First retrieves an instance list with instance names starting with the
-    demo name. A bulk request is then sent to delete all these instances.
+    First retrieves a list of resources whose names start with the
+    demo name. A bulk request is then sent to delete all matching resources.
 
     Args:
       request_handler: An instance of webapp2.RequestHandler.
       gce_project: An object of type gce.GceProject.
       demo_name: The string name of the demo.
+      lister: Function to call to enumerate the requested resource type.
     """
 
-    instances = self.run_gce_request(
+    resources = self.run_gce_request(
         request_handler,
-        gce_project.list_instances,
-        'Error listing instances: ',
+        lister,
+        'Error listing resources: ',
         filter='name eq ^%s-.*' % demo_name,
         maxResults=MAX_RESULTS)
 
-    if instances:
+    if resources:
       response = self.run_gce_request(
           request_handler,
           gce_project.bulk_delete,
-          'Error deleting instances: ',
-          resources=instances)
+          'Error deleting resources: ',
+          resources=resources)
 
       if response:
         self.response.headers['Content-Type'] = 'text/plain'
