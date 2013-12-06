@@ -122,8 +122,7 @@ class Instance(webapp2.RequestHandler):
     Return the results as JSON mapping instance name to status.
     """
 
-    operation = self.request.get('operation')
-    logging.info('/instance GET operation: ' + operation)
+    resource_type = self.request.get('resource-type')
 
     gce_project_id = data_handler.stored_user_data[user_data.GCE_PROJECT_ID]
     gce_zone_name = data_handler.stored_user_data[user_data.GCE_ZONE_NAME]
@@ -132,10 +131,10 @@ class Instance(webapp2.RequestHandler):
         zone_name=gce_zone_name)
 
 
-    if operation == 'Create Disks':
+    if resource_type == 'Disks':
         gce_appengine.GceAppEngine().list_demo_resources(
             self, gce_project, DEMO_NAME, gce_project.list_disks)
-    else:
+    elif resource_type == 'VMs':
         gce_appengine.GceAppEngine().list_demo_resources(
             self, gce_project, DEMO_NAME, gce_project.list_instances)
 
@@ -152,8 +151,7 @@ class Instance(webapp2.RequestHandler):
         zone_name=gce_zone_name)
 
     num_instances = int(self.request.get('num_instances'))
-    operation = self.request.get('operation')
-    logging.info('/instance POST operation: ' + operation)
+    resource_type = self.request.get('resource-type')
 
     # Create data strucutres for disks, disk_mounts, and instances, 
     # one for each VM.
@@ -167,13 +165,13 @@ class Instance(webapp2.RequestHandler):
                    disk_mounts=[disk_mounts[i]])
                      for i in range(num_instances)]
 
-    if operation == 'Create Disks':
+    if resource_type == 'Disks':
       response = gce_appengine.GceAppEngine().run_gce_request(
           self,
           gce_project.bulk_insert,
           'Error inserting instances: ',
           resources=disks)
-    elif operation == 'Start':
+    elif resource_type == 'VMs':
       response = gce_appengine.GceAppEngine().run_gce_request(
           self,
           gce_project.bulk_insert,
@@ -194,8 +192,7 @@ class Cleanup(webapp2.RequestHandler):
   @data_handler.data_required
   def post(self):
     """Stop instances using the gce_appengine helper class."""
-    operation = self.request.get('operation')
-    logging.info('/cleanup POST operation: ' + operation)
+    resource_type = self.request.get('resource-type')
     
     gce_project_id = data_handler.stored_user_data[user_data.GCE_PROJECT_ID]
     gce_zone_name = data_handler.stored_user_data[user_data.GCE_ZONE_NAME]
@@ -205,10 +202,10 @@ class Cleanup(webapp2.RequestHandler):
     gce_project = gce.GceProject(credentials, project_id=gce_project_id,
         zone_name=gce_zone_name)
 
-    if operation == 'Create Disks':
+    if resource_type == 'Disks':
       gce_appengine.GceAppEngine().delete_demo_resources(
           self, gce_project, DEMO_NAME, gce_project.list_disks)
-    else:
+    elif resource_type == 'VMs':
       gce_appengine.GceAppEngine().delete_demo_resources(
           self, gce_project, DEMO_NAME, gce_project.list_instances)
 

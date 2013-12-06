@@ -29,12 +29,16 @@
 </p>
 
 <p>
-  <input type="text" id="num-instances" value="{{startedVMs}}">
-  <input type="hidden" id="target-instances" value="{{targetVMs}}">
-  <input type="hidden" id="start-time" value="{{startTime}}">
-  <a class="btn" id="start">Create Disks</a>
-  <a class="btn disabled" id="reset">Delete Disks</a>
-  &nbsp;&nbsp;<span id="in-progress"></span>
+  <input class="align" type="text" id="num-instances" value="{{startedVMs}}">
+  <select class="align" id="resource-type" style="width: 100px;">
+    <option value="Disks">Disks</option>
+    <option value="VMs">VMs</option>
+  </select>
+  <input class="align" type="hidden" id="target-instances" value="{{targetVMs}}">
+  <input class="align" type="hidden" id="start-time" value="{{startTime}}">
+  <span class="align"><a class="btn" id="start">Start</a></span>
+  <span class="align"><a class="btn disabled" id="reset">Reset</a></span>
+  &nbsp;&nbsp;<span class="align" id="in-progress"></span>
 </p>
 
 <div>

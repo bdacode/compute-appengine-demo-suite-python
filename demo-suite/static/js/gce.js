@@ -158,7 +158,11 @@ Gce.prototype.startInstances = function(numInstances, startOptions) {
   }
   if (!this.doContinuousHeartbeat_
     && (this.gceUiOptions || startOptions.callback)) {
-    var terminalState = 'READY'
+    if (Resource_type == 'Disks') {
+      var terminalState = 'READY';
+    } else if (Resource_type == 'VMs') {
+      var terminalState = 'RUNNING';
+    }
     if (startOptions.checkServing) {
       terminalState = 'SERVING'
     }
@@ -171,8 +175,8 @@ Gce.prototype.startInstances = function(numInstances, startOptions) {
  * @param {function} callback A callback function to call when instances
  *     have stopped.
  */
-Gce.prototype.stopInstances = function(callback, operation) {
-  var data = {'operation': operation}
+Gce.prototype.stopInstances = function(callback, resource_type) {
+  var data = {'resource-type': resource_type}
 
   if (this.gceUiOptions.timer && this.gceUiOptions.timer.start) {
     this.gceUiOptions.timer.start();
@@ -319,7 +323,7 @@ Gce.prototype.getStatuses_ = function(success, optionalData) {
   if (optionalData) {
     ajaxRequest.data = optionalData;
   }
-  ajaxRequest.data['operation'] = Operation;
+  ajaxRequest.data['resource-type'] = Resource_type;
   if (this.commonQueryData_) {
     $.extend(ajaxRequest.data, this.commonQueryData_)
   }
