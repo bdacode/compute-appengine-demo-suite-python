@@ -33,6 +33,7 @@ from google.appengine.ext import ndb
 from google.appengine.api import users
 
 DEMO_NAME = 'quick-start'
+resourceTypes = ['Disks', 'VMs']
 
 class Objective(ndb.Model):
   """ This data model keeps track of work in progress. """
@@ -40,14 +41,17 @@ class Objective(ndb.Model):
   _use_memcache = False
   _use_cache = False
 
+  # Desired resource type (Disks or VMs).
+  resourceType = ndb.StringProperty()
+
   # Desired number of VMs and start time. This will be >0 for a start
   # request or 0 for a reset/stop request.
-  targetVMs = ndb.IntegerProperty()
+  target = ndb.IntegerProperty()
 
   # Number of VMs started by last start request. This is handy when
   # recovering during a reset operation, so we can figure out how many 
   # instances to depict in the UI.
-  startedVMs = ndb.IntegerProperty()
+  started = ndb.IntegerProperty()
 
   # Epoch time when last/current request was stated.
   startTime = ndb.IntegerProperty()
@@ -57,16 +61,17 @@ def getObjective(project_id):
   return key.get()
 
 @ndb.transactional
-def updateObjective(project_id, targetVMs):
+def updateObjective(project_id, resourceType, target):
   objective = getObjective(project_id)
   if not objective: 
     logging.info('objective not found, creating new, project=' + project_id)
     key = ndb.Key("Objective", project_id)
     objective = Objective(key=key)
-  objective.targetVMs = targetVMs
-  # Overwrite startedVMs only when starting, skip when stopping.
-  if targetVMs > 0:
-    objective.startedVMs = targetVMs 
+  objective.resourceType = resourceType
+  objective.target = target
+  # Overwrite started only when starting, skip when stopping.
+  if target > 0:
+    objective.started = target 
   objective.startTime = int(time.time())
   objective.put()
 
@@ -90,20 +95,24 @@ class QuickStart(webapp2.RequestHandler):
     if not oauth_decorator.credentials.refresh_token:
       self.redirect(oauth_decorator.authorize_url() + '&approval_prompt=force')
 
-    targetVMs = 5
-    startedVMs = 5
+    resourceType = 'Disks'
+    target = 5
+    started = 5
     startTime = 0
 
     gce_project_id = data_handler.stored_user_data[user_data.GCE_PROJECT_ID]
     objective = getObjective(gce_project_id)
     if objective:
-      (targetVMs, startedVMs, startTime) = (objective.targetVMs, 
-        objective.startedVMs, objective.startTime)
+      (resourceType, target, started, startTime) = \
+        (objective.resourceType, objective.target, objective.started,
+        objective.startTime)
 
     variables = {
       'demo_name': DEMO_NAME,
-      'targetVMs': targetVMs,
-      'startedVMs': startedVMs,
+      'resourceTypes': resourceTypes,
+      'resourceType': resourceType,
+      'target': target,
+      'started': started,
       'startTime': startTime
     }
     template = jinja_environment.get_template(
@@ -179,7 +188,7 @@ class Instance(webapp2.RequestHandler):
           resources=instances)
 
     # Record objective in datastore so we can recover work in progress.
-    updateObjective(gce_project_id, num_instances)
+    updateObjective(gce_project_id, resource_type, num_instances)
 
     if response:
       self.response.headers['Content-Type'] = 'text/plain'
@@ -210,7 +219,7 @@ class Cleanup(webapp2.RequestHandler):
           self, gce_project, DEMO_NAME, gce_project.list_instances)
 
     # Record reset objective in datastore so we can recover work in progress.
-    updateObjective(gce_project_id, 0)
+    updateObjective(gce_project_id, resource_type, 0)
 
 app = webapp2.WSGIApplication(
     [

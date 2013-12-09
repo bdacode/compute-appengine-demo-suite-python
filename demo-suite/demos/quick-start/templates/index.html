@@ -29,12 +29,15 @@
 </p>
 
 <p>
-  <input class="align" type="text" id="num-instances" value="{{startedVMs}}">
+  <input class="align" type="text" id="num-instances" value="{{started}}">
   <select class="align" id="resource-type" style="width: 100px;">
-    <option value="Disks">Disks</option>
-    <option value="VMs">VMs</option>
+    {% for i in resourceTypes %}
+      <option value="{{i}}"
+        {% if i == resourceType %}selected="selected"{% endif %}>
+        {{i}}</option>
+    {% endfor %}
   </select>
-  <input class="align" type="hidden" id="target-instances" value="{{targetVMs}}">
+  <input class="align" type="hidden" id="target-instances" value="{{target}}">
   <input class="align" type="hidden" id="start-time" value="{{startTime}}">
   <span class="align"><a class="btn" id="start">Start</a></span>
   <span class="align"><a class="btn disabled" id="reset">Reset</a></span>
