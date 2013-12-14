@@ -37,6 +37,8 @@ API = 'compute'
 GCE_URL = 'https://www.googleapis.com/%s' % API
 GOOGLE_PROJECT = 'centos-cloud'
 
+Disk_resource = None
+Instance_resource = None
 
 class GceProject(object):
   """Gce classes and methods to work with Compute Engine.
@@ -682,7 +684,11 @@ class Instance(GceResource):
       The instances method of the apiclient.discovery.Resource object.
     """
 
-    return self.gce_project.service.instances()
+    #return self.gce_project.service.instances()
+    global Instance_resource
+    if not Instance_resource:
+      Instance_resource = self.gce_project.service.instances()
+    return Instance_resource
 
 
 class Firewall(GceResource):
@@ -957,8 +963,11 @@ class Disk(GceResource):
       The disks method of the apiclient.discovery.Resource object.
     """
 
-    return self.gce_project.service.disks()
-
+    #return self.gce_project.service.disks()
+    global Disk_resource
+    if not Disk_resource:
+      Disk_resource = self.gce_project.service.disks()
+    return Disk_resource
 
 class MachineType(GceResource):
   """A class representing a GCE Machine Type resource.
