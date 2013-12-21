@@ -80,6 +80,13 @@ QuickStart.prototype.initializeButtons_ = function(gce) {
   $('.btn').button();
 
   var that = this;
+
+  $('#resource-type').change(function() {
+    // Reset completed, allow start button and disallow reset button.
+    $('#start').removeClass('disabled');
+    $('#reset').addClass('disabled');
+  });
+
   $('#start').click(function() {
     // Get the number of instances entered by the user.
     var numInstances = parseInt($('#num-instances').val(), 10);
